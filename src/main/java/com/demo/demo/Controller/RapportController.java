@@ -3,6 +3,7 @@ package com.demo.demo.Controller;
 import com.demo.demo.Service.CandidateService;
 import com.demo.demo.Service.RapportService;
 import com.demo.demo.Service.TestService;
+import com.demo.demo.dtos.CandidateReponseDTo;
 import com.demo.demo.dtos.RapportDTo;
 import com.demo.demo.dtos.TestDTo;
 import com.demo.demo.entity.Candidate;
@@ -37,12 +38,10 @@ public class RapportController {
         return rapportService.getAllRapports();
     }
 
-    @PostMapping(value = "/add", produces = "application/json")
-    public ResponseEntity<?> createRapport(@RequestBody RapportDTo rapportDTo,@RequestParam("reponsesCandidat") List<String> reponsesCandidat){
-
-        RapportDTo createdRapport = rapportService.createRapport(rapportDTo,reponsesCandidat );
-
-        return ResponseEntity.ok().body(createdRapport);
+    @PostMapping("/add")
+    public ResponseEntity<RapportDTo> createRapport(@RequestBody RapportDTo rapportDTo, @RequestBody List<CandidateReponseDTo> candidateReponseDTos) {
+        RapportDTo createdRapport = rapportService.createRapport(rapportDTo, candidateReponseDTos);
+        return ResponseEntity.ok(createdRapport);
     }
 
 
@@ -63,14 +62,10 @@ public class RapportController {
     public void deleteAllRaports() {
         rapportService.deleteAllRaports();
     }
-    @PostMapping("/verifierReponse")
-    public ResponseEntity<Boolean> verifierReponse(@RequestParam Long questionId, @RequestBody String reponsesCandidat) {
-        boolean result = rapportService.verifierReponse(questionId, reponsesCandidat);
-        if (result) {
-            return ResponseEntity.ok(true);
-        } else {
-            return ResponseEntity.badRequest().body(false);
-        }
+    @PostMapping("/verifier-reponse")
+    public ResponseEntity<Boolean> verifierReponse(@RequestParam Long questionId, @RequestBody CandidateReponseDTo candidateReponseDTO) {
+        boolean isCorrect = rapportService.verifierReponse(questionId, candidateReponseDTO);// You can customize the response accordingly, e.g., return HTTP 200 for true and HTTP 404 for false
+        return ResponseEntity.ok(isCorrect);
     }
 }
 

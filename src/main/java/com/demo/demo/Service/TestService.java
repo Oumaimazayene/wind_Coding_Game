@@ -14,5 +14,6 @@ public interface TestService {
     TestDTo updateTest(Long id, TestDTo testDTo);
     void deleteTest(Long id);
     void  deleteAllTests();
+     void CreateTest_Logique(Long CompagneId );
 
 }

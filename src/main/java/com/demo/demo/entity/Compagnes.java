@@ -1,6 +1,7 @@
 package com.demo.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,27 +23,15 @@ public class Compagnes {
     @Column(name = "experience")
     public String experience ;
     @Column(name = "difficulty")
-    public String difficulty;
+    private String difficulty;
     @Column(name = "qtsNumber")
     public Integer qtsNumber ;
     @Column(name = "createdAt")
     public Date CreatedAt;
-    @Column(name = "score")
+    @OneToMany(mappedBy = "campagne")
+    private List<Test> tests;
 
-    public Integer score  ;
-    @JsonManagedReference
-    @ManyToMany
-    @JoinTable(
-            name = "compagnes_questions",
-            joinColumns = @JoinColumn(name = "compagne_id"),
-            inverseJoinColumns = @JoinColumn(name = "question_id"))
-    private List<Question> questions;
-    @JsonBackReference
-    @OneToOne(mappedBy = "compagnes",cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private Test test;
 
-    @ManyToOne
-    private User user;
 
 
 

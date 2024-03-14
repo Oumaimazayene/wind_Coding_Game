@@ -53,4 +53,15 @@ public class TestController {
       testService.deleteAllTests();
     }
 
+
+
+    @PostMapping("/create/test_logique")
+    public ResponseEntity<String> createTestLogique(@RequestParam Long compagnesId) {
+        try {
+            testService.CreateTest_Logique(compagnesId);
+            return ResponseEntity.ok("Test créé avec succès !");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Une erreur s'est produite lors de la création du test: " + e.getMessage());
+        }
+    }
 }

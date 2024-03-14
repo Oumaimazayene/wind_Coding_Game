@@ -42,11 +42,6 @@ public class AnswerServiceImpl implements AnswerService {
                 .collect(Collectors.toList());
     }
 
-
-
-
-
-
     @Override
     public AnswerDTo updateAnswer(Long id, AnswerDTo answerDTo) {
         Optional<Answer> existingAnswer = answerRepository.findById(id);

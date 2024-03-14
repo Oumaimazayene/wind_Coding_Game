@@ -54,4 +54,20 @@ public class CandidateController {
         candidateService.deleteAllCandidates();
     }
 
+    @PostMapping("/send-email")
+    public ResponseEntity<String> sendEmailToCandidat(
+            @RequestParam String email,
+            @RequestParam String subject,
+            @RequestParam(required = false) String body,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName) {
+
+        try {
+            candidateService.sendEmailToCandidat(email, subject, body, firstName, lastName);
+            return ResponseEntity.ok("E-mail envoyé avec succès au candidat.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur lors de l'envoi de l'e-mail : " + e.getMessage());
+        }
+    }
+
 }

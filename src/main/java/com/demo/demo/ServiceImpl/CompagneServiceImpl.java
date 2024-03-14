@@ -2,31 +2,31 @@ package com.demo.demo.ServiceImpl;
 
 import com.demo.demo.Repository.CompagnesRepository;
 import com.demo.demo.Repository.QuestionRepository;
+import com.demo.demo.Repository.Question_Logique_Repository;
+import com.demo.demo.Repository.Question_Tech_Repository;
 import com.demo.demo.Service.CompagneService;
+import com.demo.demo.Service.Question_Logique_Service;
 import com.demo.demo.dtos.CompagnesDTo;
-import com.demo.demo.entity.Candidate;
-import com.demo.demo.entity.Compagnes;
-import com.demo.demo.entity.Question;
+import com.demo.demo.dtos.Question_Logique_DTo;
+import com.demo.demo.entity.*;
 import com.demo.demo.mappers.CompagnesMappers;
+import com.demo.demo.mappers.Question_Logique_Mapper;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@AllArgsConstructor
 @Service
 public class CompagneServiceImpl implements CompagneService {
     private  final CompagnesRepository compagnesRepository;
     private final CompagnesMappers compagnesMappers;
-    private final QuestionRepository questionRepository;
 
-    public CompagneServiceImpl(CompagnesRepository compagnesRepository, CompagnesMappers compagnesMappers, QuestionRepository questionRepository) {
-        this.compagnesRepository = compagnesRepository;
-        this.compagnesMappers = compagnesMappers;
-        this.questionRepository = questionRepository;
-    }
 
     @Override
     public Compagnes getCompagneById(Long id) {
@@ -81,32 +81,30 @@ public class CompagneServiceImpl implements CompagneService {
         }
     }
 
-    public void affecterQuestionsACompagnes(Long compagneId, List<Long> questionIds) {
-        Compagnes compagnes = compagnesRepository.findById(compagneId).orElse(null);
-
+    /*public void Compagne_Technique(Long CompagneId, String domaine1, String domaine2, String domaine3) {
+        Compagnes compagnes = compagnesRepository.findById(CompagneId).orElse(null);
         if (compagnes != null) {
-            List<Question> questions = questionRepository.findAllById(questionIds);
-            if (questions.size() <= compagnes.getQtsNumber()) {
-                compagnes.setQuestions(questions);
-                int totalScore = 0;
-                for (Question question : questions) {
-                    if (question.getScore() != null) {
-                        totalScore += question.getScore();
-                    }
-                }
-                compagnes.setScore(totalScore);
-                compagnesRepository.save(compagnes);
-            } else {
-                throw new IllegalArgumentException("Le nombre de questions dépasse qtsNumber");
-            }
-        } else {
-            throw new IllegalArgumentException("Compagne avec l'ID " + compagneId + " non trouvée.");
+            Integer qtsNumber = compagnes.getQtsNumber();
+
+            List<Question_Tech> questionsTechniques1 = questionTechRepository.findRandomByDomaine(domaine1, qtsNumber / 3);
+            List<Question_Tech> questionsTechniques2 = questionTechRepository.findRandomByDomaine(domaine2, qtsNumber / 3);
+            List<Question_Tech> questionsTechniques3 = questionTechRepository.findRandomByDomaine(domaine3, qtsNumber / 3);
+
+            compagnes.getQuestions().addAll(questionsTechniques1);
+            compagnes.getQuestions().addAll(questionsTechniques2);
+            compagnes.getQuestions().addAll(questionsTechniques3);
+
+            int totalScore = calculateTotalScore(questionsTechniques1) + calculateTotalScore(questionsTechniques2) + calculateTotalScore(questionsTechniques3);
+            compagnes.setScore(totalScore);
+
+            compagnesRepository.save(compagnes);
         }
-
-    }
-
-
-
-
-
+    }*/
 }
+
+
+
+
+
+
+

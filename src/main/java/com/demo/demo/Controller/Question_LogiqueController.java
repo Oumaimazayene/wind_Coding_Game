@@ -1,5 +1,7 @@
 package com.demo.demo.Controller;
 
+import com.demo.demo.Repository.QuestionRepository;
+import com.demo.demo.Repository.Question_Logique_Repository;
 import com.demo.demo.Service.Question_Logique_Service;
 import com.demo.demo.dtos.CandidateDTO;
 import com.demo.demo.dtos.Question_Logique_DTo;
@@ -7,6 +9,13 @@ import com.demo.demo.dtos.Question_Tech_DTo;
 import com.demo.demo.dtos.SoumetDTo;
 import com.demo.demo.entity.Candidate;
 import com.demo.demo.entity.Question_Logique;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
+import lombok.AllArgsConstructor;
+import lombok.extern.flogger.Flogger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +29,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/questionsLogique")
+@AllArgsConstructor
 public class Question_LogiqueController {
     private final Question_Logique_Service questionLogiqueService;
+    private  final Question_Logique_Repository questionLogiqueRepository;
+    private final QuestionRepository questionRepository;
 
-    public Question_LogiqueController(Question_Logique_Service questionLogiqueService) {
-        this.questionLogiqueService = questionLogiqueService;
-    }
 
     @GetMapping("/{id}")
     public Question_Logique getQuestionLogiqueById(@PathVariable Long id) {
@@ -38,17 +47,31 @@ public class Question_LogiqueController {
         return questionLogiqueService.getAllQuestionLogique();
     }
 
-    @PostMapping(value = "/add", consumes={"multipart/form-data"})
+    @PostMapping(value = "/add", consumes = {"multipart/form-data"})
     public ResponseEntity<?> createQuestionLogique(
-            @RequestPart("questionLogiqueDto") Question_Logique_DTo questionLogiqueDto,
-            @RequestParam("imageFile") MultipartFile imageFile) {
+            @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam String questionLogiqueDtoJson
+    ) {
         try {
+            System.out.println("Received JSON: " + questionLogiqueDtoJson);
+            System.out.println(imageFile);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Question_Logique_DTo questionLogiqueDto = objectMapper.readValue(questionLogiqueDtoJson, Question_Logique_DTo.class);
+            System.out.println(questionLogiqueDto);
+
+
             Question_Logique_DTo createdQuestionLogique = questionLogiqueService.createQuestionLogique(questionLogiqueDto, imageFile);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdQuestionLogique);
+
+            return new ResponseEntity<>(createdQuestionLogique, HttpStatus.CREATED);
+        } catch (JsonProcessingException e) {
+            return new ResponseEntity<>("Erreur lors du traitement JSON: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return new ResponseEntity<>("Erreur d'entrée/sortie lors du traitement du fichier image: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     @PutMapping("/{id}")
 

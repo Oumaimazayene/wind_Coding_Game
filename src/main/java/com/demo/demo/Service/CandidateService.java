@@ -13,4 +13,5 @@ public interface CandidateService {
     CandidateDTO updateCandidate(Long id, CandidateDTO candidateDTO);
     void deleteCandidate(Long id);
     void  deleteAllCandidates();
+    void sendEmailToCandidat(String candidatEmail, String subject, String body, String firstName, String lastName) ;
 }

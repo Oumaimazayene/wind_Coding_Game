@@ -14,5 +14,5 @@ public interface CompagneService {
     CompagnesDTo updateCompagne(Long id, CompagnesDTo compagnesDTo);
     void deleteCompagne(Long id);
     void  deleteAllCompagnes();
-    void affecterQuestionsACompagnes(Long compagneId, List<Long> questionIds);
+    //void Compagne_Technique(Long CompagneId, String domaine1, String domaine2, String domaine3);
 }

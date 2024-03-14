@@ -2,8 +2,11 @@ package com.demo.demo.entity;
 
 import com.demo.demo.dtos.AnswerDTo;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -12,10 +15,12 @@ import java.util.List;
 import java.util.Set;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "question")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "Question_type")
+@DiscriminatorColumn(name = "question_type", discriminatorType = DiscriminatorType.STRING)
 public class Question {
 
     @Id
@@ -45,5 +50,8 @@ public class Question {
     private Type type;
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answer;
+    @JsonBackReference
+    @ManyToMany(mappedBy = "questions")
+    private List<Test> tests;
 
 }

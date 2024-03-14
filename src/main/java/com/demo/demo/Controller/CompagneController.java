@@ -3,6 +3,7 @@ package com.demo.demo.Controller;
 import com.demo.demo.Service.CompagneService;
 import com.demo.demo.dtos.CompagnesDTo;
 import com.demo.demo.entity.Compagnes;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,26 @@ public class CompagneController {
     public ResponseEntity<?> createCompagne(@RequestBody CompagnesDTo compagnesDTo) {
         return ResponseEntity.ok().body(compagneService.createCompagne(compagnesDTo));
     }
+    /*@PostMapping("compagneLogique/{compagneId}")
+    public ResponseEntity<String> compagneLogique(@PathVariable Long compagneId) {
+        try {
+            compagneService.Compagne_Logique(compagneId);
+            return ResponseEntity.ok("Compagne logique traitée avec succès.");
+        } catch (Exception e) {
+            e.printStackTrace(); // Vous pouvez personnaliser la gestion des erreurs en fonction de vos besoins
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors du traitement de la compagne logique.");
+        }
+    }*/
 
+  /*  @PostMapping("/technique/{compagneId}/{domaine1}/{domaine2}/{domaine3}")
+    public void createCompagneTechnique(
+            @PathVariable Long compagneId,
+            @PathVariable String domaine1,
+            @PathVariable String domaine2,
+            @PathVariable String domaine3
+    ) {
+        compagneService.Compagne_Technique(compagneId, domaine1, domaine2, domaine3);
+    }*/
 
     @PutMapping("/{id}")
 
@@ -48,7 +68,7 @@ public class CompagneController {
     @DeleteMapping("/compagnes")
     public void deleteAllCompagnes() {compagneService.deleteAllCompagnes();
     }
-    @PostMapping("/{compagneId}/affecter-questions")
+   /* @PostMapping("/{compagneId}/affecter-questions")
     public ResponseEntity<String> affecterQuestionsACompagnes(
             @PathVariable Long compagneId,
             @RequestBody List<Long> questionIds
@@ -59,7 +79,8 @@ public class CompagneController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
+    }*/
+
 
 
 

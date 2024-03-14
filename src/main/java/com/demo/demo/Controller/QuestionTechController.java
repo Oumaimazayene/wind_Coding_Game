@@ -57,5 +57,15 @@ public class QuestionTechController {
         questionTechService.deleteAllQuestionTech();
     }
 
+   /* @GetMapping("/{questionId}/requiresCompilation")
+    public ResponseEntity<Boolean> checkIfCompilationIsRequired(@PathVariable Long questionId) {
+        try {
+            boolean compilationRequired = questionTechService.requiresCompilation(questionId);
+            return new ResponseEntity<>(compilationRequired, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }*/
+
 }
 

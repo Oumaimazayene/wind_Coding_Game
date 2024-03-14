@@ -15,4 +15,6 @@ public interface Question_Tech_Service {
     Question_Tech_DTo updateQuestionTech(Long id, Question_Tech_DTo questionTechDTo);
     void deleteQuestionTech(Long id);
     void  deleteAllQuestionTech();
+
+  //  boolean requiresCompilation(Long questionId);
 }

@@ -2,6 +2,7 @@ package com.demo.demo.ServiceImpl;
 
 import com.demo.demo.Repository.Question_Logique_Repository;
 import com.demo.demo.Repository.TypeRepository;
+import com.demo.demo.Service.ImageUploadService;
 import com.demo.demo.Service.Question_Logique_Service;
 import com.demo.demo.dtos.Question_Logique_DTo;
 import com.demo.demo.entity.Answer;
@@ -9,34 +10,29 @@ import com.demo.demo.entity.Question_Logique;
 import com.demo.demo.entity.Type;
 import com.demo.demo.mappers.AnswerMapper;
 import com.demo.demo.mappers.Question_Logique_Mapper;
+import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-
+@AllArgsConstructor
 @Service
 public class Question_Logique_ServiceImpl implements Question_Logique_Service {
     private final Question_Logique_Mapper questionLogiqueMapper;
     private final Question_Logique_Repository questionLogiqueRepository;
     private final TypeRepository typeRepository;
     private final AnswerMapper answerMapper ;
-
-    public Question_Logique_ServiceImpl(Question_Logique_Mapper questionLogiqueMapper, Question_Logique_Repository questionLogiqueRepository, TypeRepository typeRepository, AnswerMapper answerMapper ) {
-        this.questionLogiqueMapper = questionLogiqueMapper;
-        this.questionLogiqueRepository = questionLogiqueRepository;
-        this.typeRepository = typeRepository;
-        this.answerMapper = answerMapper;
-    }
-
+private final ImageUploadService imageUploadService;
     @Override
     public Question_Logique getQuestionLogiqueById(Long id) {
         return questionLogiqueRepository.findById(id).orElse(null);
@@ -52,10 +48,12 @@ public class Question_Logique_ServiceImpl implements Question_Logique_Service {
     @Override
     public Question_Logique_DTo createQuestionLogique(Question_Logique_DTo questionLogiqueDto, MultipartFile imageFile) throws IOException {
         try {
+            validateInputs(questionLogiqueDto, imageFile);
+
+
             Long typeId = questionLogiqueDto.getType_id();
             Type type = typeRepository.findById(typeId)
                     .orElseThrow(() -> new RuntimeException("Type non trouvé avec l'id " + typeId));
-            String imageUrl = saveImage(imageFile);
 
 
             Question_Logique questionLogique = questionLogiqueMapper.ToQuestionLogique(questionLogiqueDto);
@@ -70,30 +68,21 @@ public class Question_Logique_ServiceImpl implements Question_Logique_Service {
                     .collect(Collectors.toList());
 
             questionLogique.setAnswer(answerList);
-            questionLogique.setURLimage(imageUrl);
+            questionLogique.setURLimage(imageUploadService.saveImage(imageFile));
 
             Question_Logique savedQuestionLogique = questionLogiqueRepository.save(questionLogique);
 
             return questionLogiqueMapper.ToQuestionLogiqueDTo(savedQuestionLogique);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating Question_Logique: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de la création de la question logique : " + e.getMessage(), e);
         }
     }
 
-
-
-    private String saveImage(MultipartFile imageFile) throws IOException {
-        Path uploadDir = Paths.get("./uploads");
-
-        Files.createDirectories(uploadDir);
-
-        String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-
-        Path filePath = uploadDir.resolve(fileName);
-        Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        return  fileName;
+    private void validateInputs (Question_Logique_DTo questionLogiqueDto, MultipartFile imageFile) {
+        Objects.requireNonNull(questionLogiqueDto, "Question_Logique_DTo cannot be null");
+        Objects.requireNonNull(imageFile, "Image file cannot be null");
     }
+
 
 
 
@@ -131,4 +120,9 @@ public void deleteAllQuestionLogique() {
         throw e;
     }
 }
+
+
+
+
+
 }

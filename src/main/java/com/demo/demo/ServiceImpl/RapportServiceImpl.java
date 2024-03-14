@@ -7,6 +7,7 @@ import com.demo.demo.Repository.TestRepository;
 import com.demo.demo.Service.RapportService;
 
 import com.demo.demo.Service.TestService;
+import com.demo.demo.dtos.CandidateReponseDTo;
 import com.demo.demo.dtos.RapportDTo;
 import com.demo.demo.entity.*;
 import com.demo.demo.mappers.RapportMapper;
@@ -44,7 +45,7 @@ private final TestRepository testRepository;
     }
 
     @Override
-    public RapportDTo createRapport(RapportDTo rapportDTo, List<String> reponsesCandidat) {
+    public RapportDTo createRapport(RapportDTo rapportDTo, List<CandidateReponseDTo> candidateReponseDTos) {
 
         Long soumetId = rapportDTo.getSoumet_id();
         Soumet soumet = soumetRepository.findById(soumetId).orElseThrow(() -> new RuntimeException("Relation non trouvée avec l'Id " + soumetId));
@@ -52,19 +53,11 @@ private final TestRepository testRepository;
         Rapport rapport = rapportMapper.ToRapport(rapportDTo);
         Long testId = soumet.getTest().getId();
         rapport.setSoumet(soumet);
-
-        // Enregistrez le rapport dans la base de données
         Rapport savedRapport = rapportRepository.save(rapport);
 
-        // Appelez la méthode genererRapport pour mettre à jour les détails du rapport
-        genererRapport(testId, reponsesCandidat, savedRapport);
-
+      // genererRapport(testId, candidateReponseDTos, savedRapport);
         return rapportMapper.ToRapportDTo(savedRapport);
     }
-
-
-
-
 
     @Override
     public RapportDTo updateRapport(Long id, RapportDTo rapportDTo) {
@@ -102,23 +95,24 @@ private final TestRepository testRepository;
 
     }
 
-
-
-@Override
-
-     public boolean verifierReponse(Long questionId, String reponseCandidat) {
+    @Override
+    public boolean verifierReponse(Long questionId,CandidateReponseDTo candidateReponseDTO) {
+        if (!questionId.equals(candidateReponseDTO.getIdQuestion())) {
+            return false;
+        }
         Optional<Question> questionOptional = questionRepository.findById(questionId);
-
         if (questionOptional.isPresent()) {
             Question question = questionOptional.get();
-            System.out.println("la question a vereifier  est "+ question);
+            System.out.println("La question à vérifier est " + question);
+
+            List<String> candidateResponses = candidateReponseDTO.getReponses();
 
             for (Answer answer : question.getAnswer()) {
                 System.out.println("IsTrue : " + answer.getIsTrue());
                 System.out.println("Réponse de la base de données : [" + answer.getAnswer() + "]");
-                System.out.println("Réponse du candidat : [" + reponseCandidat + "]");
 
-                if (answer.getIsTrue() && areEqualIgnoreCaseAndTrim(answer.getAnswer(), reponseCandidat)) {
+                // Vérifier si la réponse du candidat est parmi les réponses possibles
+                if (answer.getIsTrue() && containsIgnoreCaseAndTrim(candidateResponses, answer.getAnswer())) {
                     System.out.println("La réponse est correcte!");
                     return true;
                 }
@@ -127,34 +121,34 @@ private final TestRepository testRepository;
 
         return false;
     }
-
-    private boolean areEqualIgnoreCaseAndTrim(String str1, String str2) {
-        return str1 != null && str2 != null && str1.trim().equalsIgnoreCase(str2.trim());
+    private boolean containsIgnoreCaseAndTrim(List<String> list, String value) {
+        for (String item : list) {
+            if (item.trim().equalsIgnoreCase(value.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
-    private RapportDTo genererRapport(Long testId, List<String> reponsesCandidat, Rapport rapport) {
+
+  /*  private RapportDTo genererRapport(Long testId, List<CandidateReponseDTo> candidateReponseDTos, Rapport rapport) {
         rapport.setDate(new Date());
-Test test =  testRepository.findById(testId).orElseThrow(() -> new RuntimeException("test  non trouvé avec l'id " + testId));
-
-
-        int qtsNumber = test.getCompagnes().getQtsNumber();
-        if (reponsesCandidat.size() != qtsNumber) {
-            throw new IllegalArgumentException("Le nombre de réponses de candidat ne correspond pas au nombre total de questions.");
-        }
+        Test test = testRepository.findById(testId).orElseThrow(() -> new RuntimeException("Test non trouvé avec l'id " + testId));
 
         int correctAnswerCount = 0;
         int totalScore = 0;
+        int qtsNumber = test.getCompagnes().getQtsNumber();
 
         List<Question> questions = test.getCompagnes().getQuestions();
 
         for (int i = 0; i < qtsNumber; i++) {
             Question question = questions.get(i);
-            String reponseCandidat = reponsesCandidat.get(i);
+            CandidateReponseDTo candidateReponseDTO = candidateReponseDTos.get(i);
 
-            if (verifierReponse(question.getId(), reponseCandidat)) {
+            if (verifierReponse(question.getId(), candidateReponseDTO)) {
                 for (Answer answer : question.getAnswer()) {
-                    if (answer.getIsTrue() && reponseCandidat.equals(answer.getAnswer())) {
+                    if (answer.getIsTrue() && candidateReponseDTO.getReponses().contains(answer.getAnswer())) {
                         correctAnswerCount++;
                         totalScore += answer.getQuestion().getScore();
                         break;
@@ -174,10 +168,43 @@ Test test =  testRepository.findById(testId).orElseThrow(() -> new RuntimeExcept
         return rapportMapper.ToRapportDTo(savedRapport);
     }
 
+/*    public boolean verifierReponse(Long questionId, CandidateReponseDTo candidateReponseDTO) {
+        // Vérifier si l'ID de la question correspond à celui fourni dans le DTO
+        if (!questionId.equals(candidateReponseDTO.getIdQuestion())) {
+            return false;
+        }
 
+        // Récupérer la question de la base de données
+        Optional<Question> questionOptional = questionRepository.findById(questionId);
+        if (questionOptional.isPresent()) {
+            Question question = questionOptional.get();
+            System.out.println("La question à vérifier est " + question);
 
+            // Vérifier si la question est de type technique
+            if (question instanceof Question_Tech && "code".equals(question.getType())) {
+                Question_Tech questionTech = (Question_Tech) question;
 
+                Domaine domaine = questionTech.getDomain();
+                String lang = domaine.getLang();
+                String version = domaine.getVersion();
+                String code = candidateReponseDTO.getReponses().get(0);
+                ClientRunRequestBody requestBody = new ClientRunRequestBody(lang, version, code, null);
 
+                boolean resultatCompilation = compilateurService.compilerCode(requestBody);
+
+                return resultatCompilation;
+            } else {
+                List<String> candidateResponses = candidateReponseDTO.getReponses();
+                for (Answer answer : question.getAnswer()) {
+                    if (answer.getIsTrue() && containsIgnoreCaseAndTrim(candidateResponses, answer.getAnswer())) {
+                        System.out.println("La réponse est correcte!");
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }*/
 
 }
 

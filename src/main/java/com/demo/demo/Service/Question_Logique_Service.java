@@ -1,9 +1,7 @@
 package com.demo.demo.Service;
 
 import com.demo.demo.dtos.Question_Logique_DTo;
-import com.demo.demo.dtos.RoleDTo;
 import com.demo.demo.entity.Question_Logique;
-import com.demo.demo.entity.Role;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

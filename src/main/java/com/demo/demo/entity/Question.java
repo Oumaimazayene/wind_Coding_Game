@@ -2,14 +2,15 @@ package com.demo.demo.entity;
 
 import com.demo.demo.dtos.AnswerDTo;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,7 @@ import java.util.Set;
 @Table(name = "question")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "question_type", discriminatorType = DiscriminatorType.STRING)
+
 public class Question {
 
     @Id
@@ -36,22 +38,18 @@ public class Question {
     @Column(name = "score")
     private Integer score;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "difficulty")
-    private String difficulty;
+    private Difficulty difficulty;
 
     @Column(name = "time")
     private Integer time;
 
     @Column(name = "isPrivate")
     private Boolean isPrivate = false;
-    @JsonBackReference
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "type_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "type_id")
     private Type type;
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answer;
-    @JsonBackReference
-    @ManyToMany(mappedBy = "questions")
-    private List<Test> tests;
-
 }

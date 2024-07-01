@@ -1,26 +1,29 @@
 package com.demo.demo.ServiceImpl;
 
-import com.demo.demo.Repository.TypeRepository;
+import com.demo.demo.Repository.*;
 import com.demo.demo.Service.TypeService;
 import com.demo.demo.dtos.TypeDto;
+import com.demo.demo.entity.Question;
+import com.demo.demo.entity.Test;
+import com.demo.demo.entity.Test_Section;
 import com.demo.demo.entity.Type;
 import com.demo.demo.mappers.TypeMapper;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 @Service
+@AllArgsConstructor
 public class TypeServiceImpl  implements TypeService {
     private final TypeRepository typeRepository;
     private final TypeMapper typeMapper;
 
-    public TypeServiceImpl(TypeRepository typeRepository, TypeMapper typeMapper) {
-        this.typeRepository = typeRepository;
-        this.typeMapper = typeMapper;
-    }
 
     @Override
     public Type getTypeById(Long id) {
@@ -34,8 +37,14 @@ public class TypeServiceImpl  implements TypeService {
     }
     @Override
     public TypeDto createType(TypeDto typeDTO) {
-        return typeMapper.toTypeDTo(typeRepository.save(typeMapper.ToType(typeDTO)));
+        if (typeRepository.existsByName(typeDTO.getName())) {
+            throw new RuntimeException("Le type avec le nom spécifié existe déjà.");
+        }
+        Type type = typeMapper.ToType(typeDTO);
+        Type savedType = typeRepository.save(type);
+        return typeMapper.toTypeDTo(savedType);
     }
+
     @Override
     public TypeDto updateType(Long id, TypeDto typeDTO) {
         Optional<Type> existingType = typeRepository.findById(id);

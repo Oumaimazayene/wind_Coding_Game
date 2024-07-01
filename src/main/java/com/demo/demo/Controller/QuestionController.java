@@ -1,16 +1,14 @@
 package com.demo.demo.Controller;
 
 import com.demo.demo.Service.QuestionService;
-import com.demo.demo.dtos.CompagnesDTo;
 import com.demo.demo.dtos.QuestionDTo;
-import com.demo.demo.entity.Compagnes;
 import com.demo.demo.entity.Question;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/questions")
+@RequestMapping("/v2/questions")
 public class QuestionController {
     private final QuestionService questionService ;
 

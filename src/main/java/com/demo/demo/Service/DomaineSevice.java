@@ -14,5 +14,7 @@ public interface  DomaineSevice {
     DomaineDTo updateDomaine(Long id, DomaineDTo domaineDTo);
     void deleteDomaine(Long id);
     void  deleteAllDomaine();
+    long countDomains();
+    List<Domaine> findDomainesByName(String name);
 
 }

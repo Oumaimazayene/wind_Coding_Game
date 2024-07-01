@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/types")
+@RequestMapping("/v2/types")
 public class TypeController {
     private final TypeService typeService;
 

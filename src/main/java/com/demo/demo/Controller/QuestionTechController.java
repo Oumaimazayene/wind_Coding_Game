@@ -2,6 +2,7 @@ package com.demo.demo.Controller;
 import com.demo.demo.Service.Question_Tech_Service;
 import com.demo.demo.dtos.Question_Logique_DTo;
 import com.demo.demo.dtos.Question_Tech_DTo;
+import com.demo.demo.entity.Difficulty;
 import com.demo.demo.entity.Question_Logique;
 import com.demo.demo.entity.Question_Tech;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/questionsTech")
+@RequestMapping("/v2/questionsTech")
 public class QuestionTechController {
     private final Question_Tech_Service questionTechService ;
 
@@ -25,8 +26,9 @@ public class QuestionTechController {
     }
 
 
+
     @GetMapping("/all")
-    public List<Question_Tech_DTo> getAllQuestionTech() {
+    public List<Question_Tech> getAllQuestionTech() {
         return questionTechService.getAllQuestionTech();
     }
 
@@ -57,15 +59,27 @@ public class QuestionTechController {
         questionTechService.deleteAllQuestionTech();
     }
 
-   /* @GetMapping("/{questionId}/requiresCompilation")
-    public ResponseEntity<Boolean> checkIfCompilationIsRequired(@PathVariable Long questionId) {
-        try {
-            boolean compilationRequired = questionTechService.requiresCompilation(questionId);
-            return new ResponseEntity<>(compilationRequired, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }*/
+    @GetMapping("/questions/technique/{difficulty}/{domain}")
+    public List<Question_Tech> getQuestionTechniqueByDifficultyAndIsNotPrivate(
+            @PathVariable Difficulty difficulty,
+            @PathVariable String domain,
+            @RequestParam Integer size
+    ) {
+        return questionTechService.getQuestionTechniqueByDifficultyAndIsNotPrivate(difficulty,domain, size);
+    }
+    @GetMapping("/technical/filter")
+    public ResponseEntity <List<Question_Tech>> filterTechnicalQuestionsByTypeAndDifficultyAndDomainName(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) String domainName) {
 
+        List<Question_Tech> questionsFilter = questionTechService.filterTechnicalQuestionsByTypeAndDifficultyAndDomainName(type, difficulty, domainName);
+        return ResponseEntity.ok(questionsFilter);
+
+    }
+    @GetMapping("/technical/count")
+    public long countTechnicalQuestions() {
+        return questionTechService.countTechnicalQuestions();
+    }
 }
 

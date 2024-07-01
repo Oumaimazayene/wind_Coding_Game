@@ -1,8 +1,8 @@
 package com.demo.demo.entity;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
+import jakarta.persistence.*;
 import java.util.List;
 
 @Data
@@ -18,8 +18,9 @@ public class Domaine {
     @Column(name = "version")
 
     public String version ;
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     public String name ;
+
 
 
 }

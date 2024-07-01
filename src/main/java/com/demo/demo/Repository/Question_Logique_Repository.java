@@ -1,5 +1,7 @@
 package com.demo.demo.Repository;
 
+import com.demo.demo.entity.Difficulty;
+import com.demo.demo.entity.Question;
 import com.demo.demo.entity.Question_Logique;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,12 +12,20 @@ import java.util.List;
 
 public interface Question_Logique_Repository  extends JpaRepository<Question_Logique,Long> {
 
-    @Query("SELECT ql FROM Question_Logique ql ORDER BY FUNCTION('RANDOM') LIMIT :qtsNumber")
-    List<Question_Logique> findRandomQuestions(@Param("qtsNumber") int qtsNumber);
-    @Query(value = "SELECT * FROM questions_logiques WHERE difficulty = :difficulty ORDER BY RAND() LIMIT :qtsNumber", nativeQuery = true)
-    List<Question_Logique> findRandomQuestionsByDifficulty(String difficulty, int qtsNumber);
+
+    List<Question_Logique> findByDifficultyAndIsPrivateFalse(Difficulty difficulty);
+
+
+    @Query("SELECT q FROM Question_Logique q WHERE " +
+            "(:type IS NULL OR q.type.name LIKE CONCAT('%', :type, '%')) " +
+            "AND (:difficulty IS NULL OR q.difficulty = :difficulty)")
+    List<Question_Logique> filterLogicalQuestionsByTypeAndDifficulty(
+            @Param("type") String type,
+            @Param("difficulty") Difficulty difficulty);
+
 
 }
+
 
 
 

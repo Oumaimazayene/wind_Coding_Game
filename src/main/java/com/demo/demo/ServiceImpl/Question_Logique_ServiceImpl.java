@@ -1,13 +1,13 @@
 package com.demo.demo.ServiceImpl;
 
+import com.demo.demo.Repository.AnswerRepository;
+import com.demo.demo.Repository.QuestionRepository;
 import com.demo.demo.Repository.Question_Logique_Repository;
 import com.demo.demo.Repository.TypeRepository;
 import com.demo.demo.Service.ImageUploadService;
 import com.demo.demo.Service.Question_Logique_Service;
 import com.demo.demo.dtos.Question_Logique_DTo;
-import com.demo.demo.entity.Answer;
-import com.demo.demo.entity.Question_Logique;
-import com.demo.demo.entity.Type;
+import com.demo.demo.entity.*;
 import com.demo.demo.mappers.AnswerMapper;
 import com.demo.demo.mappers.Question_Logique_Mapper;
 import lombok.AllArgsConstructor;
@@ -33,16 +33,25 @@ public class Question_Logique_ServiceImpl implements Question_Logique_Service {
     private final TypeRepository typeRepository;
     private final AnswerMapper answerMapper ;
 private final ImageUploadService imageUploadService;
+private  final QuestionRepository questionRepository;
+private  final AnswerRepository answerRepository;
     @Override
     public Question_Logique getQuestionLogiqueById(Long id) {
         return questionLogiqueRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<Question_Logique_DTo> getAllQuestionLogique() {
-        return questionLogiqueRepository.findAll().stream()
-                .map(questionLogiqueMapper::ToQuestionLogiqueDTo)
-                .collect(Collectors.toList());
+    public List<Question_Logique> getAllQuestionLogique() {
+        List<Question_Logique> allQuestions = questionLogiqueRepository.findAll();
+        List<Question_Logique> nonPrivateQuestions = new ArrayList<>();
+
+        for (Question_Logique question : allQuestions) {
+            if (!question.getIsPrivate()) {
+                nonPrivateQuestions.add(question);
+            }
+        }
+
+        return nonPrivateQuestions;
     }
 
     @Override
@@ -66,6 +75,12 @@ private final ImageUploadService imageUploadService;
                         return answer;
                     })
                     .collect(Collectors.toList());
+            if (type.getName().equals("qcu")) {
+                long countTrueAnswers = answerList.stream().filter(Answer::getIsTrue).count();
+                if (countTrueAnswers != 1) {
+                    throw new IllegalArgumentException("Pour les questions à choix unique, une seule réponse doit être vraie.");
+                }
+            }
 
             questionLogique.setAnswer(answerList);
             questionLogique.setURLimage(imageUploadService.saveImage(imageFile));
@@ -96,19 +111,33 @@ public Question_Logique_DTo updateQuestionLogique(Long id, Question_Logique_DTo 
     return null;
 }
 
-@Override
-public void deleteQuestionLogique(Long id) {
-    try {
-        questionLogiqueRepository.deleteById(id);
-        System.out.println("question Logique deleted successfully with ID: " + id);
-    } catch (EmptyResultDataAccessException e) {
-        System.out.println("question logique with ID " + id + " not found");
-        throw e;
-    } catch (Exception e) {
-        System.err.println("Error deleting question logique");
-        throw e;
+    @Override
+    public void deleteQuestionLogique(Long id) {
+        try {
+            Optional<Question_Logique> optionalQuestion = questionLogiqueRepository.findById(id);
+            if (optionalQuestion.isPresent()) {
+                Question_Logique question = optionalQuestion.get();
+                List<Answer> answers = question.getAnswer();
+
+                for (Answer answer : answers) {
+                    answerRepository.deleteById(answer.getId());
+                }
+                questionLogiqueRepository.deleteById(id);
+                questionRepository.deleteById(id);
+
+                System.out.println("Question logique deleted successfully with ID: " + id);
+            } else {
+                System.out.println("Question logique with ID " + id + " not found");
+            }
+        } catch (EmptyResultDataAccessException e) {
+            System.out.println("Question logique with ID " + id + " not found");
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Error deleting question logique with ID: " + id);
+            throw e;
+        }
     }
-}
+
 
 @Override
 public void deleteAllQuestionLogique() {
@@ -120,9 +149,54 @@ public void deleteAllQuestionLogique() {
         throw e;
     }
 }
+    @Override
+    public List<Question_Logique> getQuestionLogiqueByDifficultyAndIsNotPrivate(String difficultyStr, int size) {
+        Difficulty difficulty;
+        try {
+            difficulty = Difficulty.valueOf(difficultyStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid difficulty level provided: " + difficultyStr);
+        }
+
+        List<Question_Logique> allQuestions = questionLogiqueRepository.findByDifficultyAndIsPrivateFalse(difficulty);
+        List<Question_Logique> filteredQuestions = allQuestions.stream()
+                .filter(question -> !question.getIsPrivate())
+                .collect(Collectors.toList());
+
+        if (filteredQuestions.isEmpty()) {
+            return Collections.emptyList(); // Pas de questions disponibles
+        }
+
+        if (size >= filteredQuestions.size()) {
+            return filteredQuestions;
+        } else {
+            List<Question_Logique> randomQuestions = new ArrayList<>();
+            List<Integer> indexes = new ArrayList<>();
+            Random random = new Random();
+
+            for (int i = 0; i < filteredQuestions.size(); i++) {
+                indexes.add(i);
+            }
+            Collections.shuffle(indexes);
+
+            for (int i = 0; i < size; i++) {
+                int randomIndex = random.nextInt(filteredQuestions.size());
+                randomQuestions.add(filteredQuestions.get(indexes.get(randomIndex)));
+            }
+
+            return randomQuestions;
+        }
+    }
 
 
-
+    @Override
+    public List<Question_Logique> findTypeNameByTypeAndDifficulty(String type, Difficulty difficulty) {
+        return questionLogiqueRepository.filterLogicalQuestionsByTypeAndDifficulty(type, difficulty);
+    }
+    @Override
+    public long countLogiqueQuestions() {
+        return questionLogiqueRepository.count();
+    }
 
 
 }

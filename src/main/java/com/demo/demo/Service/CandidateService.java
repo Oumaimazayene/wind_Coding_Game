@@ -5,6 +5,7 @@ import com.demo.demo.dtos.TypeDto;
 import com.demo.demo.entity.Candidate;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CandidateService {
     Candidate getCandidateById(Long id);
@@ -13,5 +14,9 @@ public interface CandidateService {
     CandidateDTO updateCandidate(Long id, CandidateDTO candidateDTO);
     void deleteCandidate(Long id);
     void  deleteAllCandidates();
-    void sendEmailToCandidat(String candidatEmail, String subject, String body, String firstName, String lastName) ;
+    void saveCandidat(Candidate candidate);
+    void sendEmailToCandidat(Long testId, String candidatEmail, String firstName, String lastName);
+
+    List<Candidate> getCandidatesByUserUUID(UUID userUUID);
+
 }

@@ -3,37 +3,27 @@ package com.demo.demo.Controller;
 import com.demo.demo.Repository.QuestionRepository;
 import com.demo.demo.Repository.Question_Logique_Repository;
 import com.demo.demo.Service.Question_Logique_Service;
-import com.demo.demo.dtos.CandidateDTO;
 import com.demo.demo.dtos.Question_Logique_DTo;
-import com.demo.demo.dtos.Question_Tech_DTo;
-import com.demo.demo.dtos.SoumetDTo;
-import com.demo.demo.entity.Candidate;
+import com.demo.demo.entity.Difficulty;
 import com.demo.demo.entity.Question_Logique;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
-import lombok.extern.flogger.Flogger;
+import org.apache.commons.lang3.builder.Diff;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/questionsLogique")
+@RequestMapping("/v2/questionsLogique")
 @AllArgsConstructor
 public class Question_LogiqueController {
     private final Question_Logique_Service questionLogiqueService;
-    private  final Question_Logique_Repository questionLogiqueRepository;
-    private final QuestionRepository questionRepository;
+
 
 
     @GetMapping("/{id}")
@@ -43,7 +33,7 @@ public class Question_LogiqueController {
 
 
     @GetMapping("/all")
-    public List<Question_Logique_DTo> getAllQuestionLogique() {
+    public List<Question_Logique> getAllQuestionLogique() {
         return questionLogiqueService.getAllQuestionLogique();
     }
 
@@ -53,12 +43,8 @@ public class Question_LogiqueController {
             @RequestParam String questionLogiqueDtoJson
     ) {
         try {
-            System.out.println("Received JSON: " + questionLogiqueDtoJson);
-            System.out.println(imageFile);
-
             ObjectMapper objectMapper = new ObjectMapper();
             Question_Logique_DTo questionLogiqueDto = objectMapper.readValue(questionLogiqueDtoJson, Question_Logique_DTo.class);
-            System.out.println(questionLogiqueDto);
 
 
             Question_Logique_DTo createdQuestionLogique = questionLogiqueService.createQuestionLogique(questionLogiqueDto, imageFile);
@@ -89,5 +75,27 @@ public class Question_LogiqueController {
     public void deleteAllQuestionLogique() {
         questionLogiqueService.deleteAllQuestionLogique();
     }
+    @GetMapping("/questions/logique/{difficulty}")
+    public List<Question_Logique> getQuestionLogiqueByDifficultyAndIsNotPrivate(
+            @PathVariable String difficulty,
+            @RequestParam Integer size
+    ) {
+        return questionLogiqueService.getQuestionLogiqueByDifficultyAndIsNotPrivate(difficulty, size);
+    }
+
+
+    @GetMapping("/typesAndDiff")
+    public ResponseEntity<List<Question_Logique>> getTypeNames(@RequestParam(required = false) String type, @RequestParam(required = false) Difficulty difficulty) {
+        List<Question_Logique> typeNames = questionLogiqueService.findTypeNameByTypeAndDifficulty(type, difficulty);
+        return ResponseEntity.ok(typeNames);
+    }
+
+    @GetMapping("/logique/count")
+    public long countLogiqueQuestions() {
+        return questionLogiqueService.countLogiqueQuestions();
+    }
+
+
+
 
 }

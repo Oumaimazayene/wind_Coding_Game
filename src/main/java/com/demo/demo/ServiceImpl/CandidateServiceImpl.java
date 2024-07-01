@@ -1,9 +1,14 @@
 package com.demo.demo.ServiceImpl;
 
 import com.demo.demo.Repository.CandidateRepository;
+import com.demo.demo.Repository.TestRepository;
+import com.demo.demo.Repository.TestSectionRepository;
 import com.demo.demo.Service.CandidateService;
+import com.demo.demo.Service.TestService;
 import com.demo.demo.dtos.CandidateDTO;
 import com.demo.demo.entity.Candidate;
+import com.demo.demo.entity.Test;
+import com.demo.demo.entity.Test_Section;
 import com.demo.demo.entity.Type;
 import com.demo.demo.mappers.CandidateMapper;
 import lombok.AllArgsConstructor;
@@ -11,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 @AllArgsConstructor
 @Service
@@ -21,6 +28,8 @@ public class CandidateServiceImpl implements CandidateService {
     private final CandidateRepository candidateRepository;
     private final CandidateMapper candidateMapper;
     private final EmailServiceImpl emailService;
+private final TestRepository testRepository;
+private final TestSectionRepository testSectionRepository;
 
 
     @Override
@@ -74,30 +83,63 @@ public class CandidateServiceImpl implements CandidateService {
             throw e;
         }
     }
+    @Override
+    public void sendEmailToCandidat(Long testId, String candidatEmail, String firstName, String lastName) {
+        Test test = testRepository.findById(testId).orElseThrow(() -> new IllegalArgumentException("Test not found for ID: " + testId));
 
-    public void sendEmailToCandidat(String candidatEmail, String subject, String body, String firstName, String lastName) {
         Candidate candidat = candidateRepository.findByEmail(candidatEmail);
-
         if (candidat == null) {
             candidat = new Candidate();
             candidat.setFirstName(firstName);
             candidat.setLastName(lastName);
             candidat.setEmail(candidatEmail);
         }
-        subject = "Test" ;
-        body = "Félicitations " + firstName + " " + lastName + ",\n\n" +
-                "Nous sommes heureux de vous informer que vous avez été sélectionné pour passer un test dans le cadre de votre candidature.\n\n" +
-                "Le test a pour objectif d'évaluer vos compétences et votre adéquation avec le poste.\n\n" +
-                "Date du test : [Date du test]\n" +
-                "Lieu du test : [Lieu du test]\n\n" +
-                "Soyez prêt à démontrer vos connaissances et votre expérience lors de cette évaluation. Nous vous encourageons à vous préparer en conséquence.\n\n" +
-                "Nous vous souhaitons beaucoup de succès et restons à votre disposition pour toute question ou préoccupation.\n\n" +
-                "Cordialement,\n\n" +
-                "L'équipe de recrutement";
+
+        String subject = "Test";
+        //String testUrl = "http://localhost:4200/#/test/test-start/" + testId;
+        String testUrl = "http://localhost:4200/#/test/start/"+testId ;
+
+        String body = generateEmailBody(firstName, lastName, testUrl);
 
         emailService.sendEmail(candidatEmail, subject, body);
-
+        test.setCandidate(candidat);
+        test.setIsSubmitted(true);
         candidateRepository.save(candidat);
     }
 
+    private String generateEmailBody(String firstName, String lastName, String testUrl) {
+            return "Bonjour " + firstName + " " + lastName + ",\n\n" +
+                    "Nous sommes heureux de vous informer que vous avez été sélectionné pour passer un test dans le cadre de votre candidature.\n\n" +
+                    "Vous pouvez accéder au test en suivant ce lien : " + testUrl + "\n\n" +
+                    "Soyez prêt à démontrer vos connaissances et votre expérience lors de cette évaluation. Nous vous encourageons à vous préparer en conséquence.\n\n" +
+                    "Nous vous souhaitons beaucoup de succès et restons à votre disposition pour toute question ou préoccupation.\n\n" +
+                    "Cordialement,\n\n" +
+                    "L'équipe de recrutement";
+        }
+
+
+
+
+
+        @Override
+    public void saveCandidat(Candidate candidate) {
+        candidateRepository.save(candidate);
+    }
+
+    @Override
+    public List<Candidate> getCandidatesByUserUUID(UUID userUUID) {
+        List<Test_Section> testSections = testSectionRepository.findByUserUUID(userUUID);
+
+        List<UUID> testSectionUUIDs = testSections.stream()
+                .map(Test_Section::getUuid)
+                .collect(Collectors.toList());
+
+        List<Test> tests = testRepository.findByTestSectionTechUUIDIn(testSectionUUIDs);
+
+        List<Candidate> candidates = new ArrayList<>();
+        for (Test test : tests) {
+            candidates.add(test.getCandidate());
+        }
+        return candidates;
+    }
 }

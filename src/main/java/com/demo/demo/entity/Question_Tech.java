@@ -9,11 +9,9 @@ import lombok.Data;
 @DiscriminatorValue("Technique")
 
 public class Question_Tech extends  Question{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @ManyToOne
-    @JoinColumn(name = "domaine_id")
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "domaine_id" )
     private Domaine domain;
 
 }

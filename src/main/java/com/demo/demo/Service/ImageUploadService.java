@@ -9,5 +9,5 @@ public interface ImageUploadService {
 
     String saveImage(MultipartFile imageFile) throws IOException;
 
-
+    String convertImageToBase64(String imagePath) throws IOException;
 }

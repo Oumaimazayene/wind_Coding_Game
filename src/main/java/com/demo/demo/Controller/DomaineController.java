@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/domaines")
+@RequestMapping("/v2/domaines")
 public class DomaineController {
     private  final DomaineSevice domaineSevice ;
 
@@ -29,7 +29,12 @@ public class DomaineController {
 
     @PostMapping("/add")
     public ResponseEntity<?> createDomaine(@RequestBody DomaineDTo domaineDTo) {
-        return ResponseEntity.ok().body(domaineSevice.createDomaine(domaineDTo));
+        DomaineDTo createdDomaine = domaineSevice.createDomaine(domaineDTo);
+        if (createdDomaine != null) {
+            return ResponseEntity.ok().body(createdDomaine); // Domaine créé avec succès
+        } else {
+            return ResponseEntity.badRequest().body("Le domaine existe déjà."); // Domaine déjà existant
+        }
     }
 
 
@@ -48,5 +53,14 @@ public class DomaineController {
     public void deleteAllCandidates() {
         domaineSevice.deleteAllDomaine();
     }
+    @GetMapping("/count")
+    public long countDomains() {
+        return domaineSevice.countDomains();
+    }
 
+
+    @GetMapping("/filtername")
+    public List<Domaine> getDomainesByName(@RequestParam String name) {
+        return domaineSevice.findDomainesByName(name);
+    }
 }

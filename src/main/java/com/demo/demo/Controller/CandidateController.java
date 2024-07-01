@@ -1,24 +1,29 @@
 package com.demo.demo.Controller;
 
 import com.demo.demo.Service.CandidateService;
+import com.demo.demo.Service.TestService;
 import com.demo.demo.dtos.CandidateDTO;
 import com.demo.demo.dtos.TypeDto;
 import com.demo.demo.entity.Candidate;
+import com.demo.demo.entity.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
-@RequestMapping("/candidates")
+@RequestMapping("/v2/candidats")
 public class CandidateController {
 
     private final CandidateService candidateService;
+    private final TestService testService;
 
     @Autowired
-    public CandidateController(CandidateService candidateService) {
+    public CandidateController(CandidateService candidateService, TestService testService) {
         this.candidateService = candidateService;
+        this.testService = testService;
     }
 
     @GetMapping("/{id}")
@@ -54,20 +59,30 @@ public class CandidateController {
         candidateService.deleteAllCandidates();
     }
 
-    @PostMapping("/send-email")
-    public ResponseEntity<String> sendEmailToCandidat(
+    @PostMapping("/evaluatetest")
+    public ResponseEntity<Map<String, Object>> sendEmailToCandidate(
+            @RequestParam Long testId,
             @RequestParam String email,
-            @RequestParam String subject,
-            @RequestParam(required = false) String body,
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName) {
 
+        Map<String, Object> response = new HashMap<>();
+
         try {
-            candidateService.sendEmailToCandidat(email, subject, body, firstName, lastName);
-            return ResponseEntity.ok("E-mail envoyé avec succès au candidat.");
+            candidateService.sendEmailToCandidat(testId, email, firstName, lastName);
+            String successMessage = "E-mail envoyé avec succès au candidat.";
+            response.put("status", HttpStatus.OK.value());
+            response.put("message", successMessage);
+            return ResponseEntity.ok().body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Erreur lors de l'envoi de l'e-mail : " + e.getMessage());
+            response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.put("message", "Erreur lors de l'envoi de l'e-mail : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
+    @GetMapping("/{userUUID}/candidates")
+    public ResponseEntity<List<Candidate>> getCandidatesByUserUUID(@PathVariable UUID userUUID) {
+        List<Candidate> candidates = candidateService.getCandidatesByUserUUID(userUUID);
+        return ResponseEntity.ok(candidates);
+    }
 }
